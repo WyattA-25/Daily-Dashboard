@@ -6,9 +6,9 @@ A single-page browser dashboard that gives you your day at a glance — weather,
 
 ## What it does
 
-- **Stocks** — refresh every 5 minutes via Yahoo Finance (no API key)
+- **Stocks** — refresh every 5 minutes via Yahoo Finance through corsproxy.io (free, no API key)
 - **Weather** — refresh every 10 minutes via Open-Meteo (no API key). 3 cities, flip between them with arrows.
-- **Email** — refreshes every 30 minutes via a Cowork-side Gmail pull. Color-coded by account, up to 7 accounts.
+- **Email** — refreshes every 30 minutes (and on Email tab click) via a Cowork-side Gmail pull written to `emails.js`. Color-coded by account, up to 7 accounts.
 - **Calendar / news / reminders / project summaries** — rebuilt once a day by Cowork at 7:00 AM
 - **Notes** — auto-save to browser localStorage, persistent across sessions, "+ Add a note" creates new notepads per project
 - **News topics** — fully configurable. Default set: AI/Automation, Tech, Computer/Engineering, 3D Printing, Camping, Politics, Gaming
@@ -37,7 +37,7 @@ Anywhere works. A common choice:
 ```
 ~/Documents/Claude/Projects/Daily Dashboard
 ```
-Copy `dashboard_template.html` from this repo into that folder and rename it to `dashboard_today.html`. Copy `emails.example.json` and rename it to `emails.json`.
+Copy `dashboard_template.html` from this repo into that folder and rename it to `dashboard_today.html`. Copy `emails.example.js` and rename it to `emails.js` (the page loads emails via a `<script>` tag — this sidestep is needed because Chrome blocks `fetch()` between local files).
 
 ### 3. Open Cowork → create a new project
 - Name it whatever (e.g. "Morning Dashboard")
@@ -143,4 +143,4 @@ Daily token cost on Pro / Max 5x:
 
 ## Credits
 
-Built collaboratively in Cowork. Weather via [Open-Meteo](https://open-meteo.com). Stock data via [Yahoo Finance](https://finance.yahoo.com). Reverse-geocoding via [BigDataCloud](https://www.bigdatacloud.com/).
+Built collabora

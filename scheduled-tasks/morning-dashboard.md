@@ -44,11 +44,12 @@ STEP 3 — Update the HTML (only data, not structure):
 - Right sidebar today's schedule + next-up
 - Project cards if user has added named projects
 
-STEP 4 — Write emails.json sidecar:
-Also write [PROJECT FOLDER]\emails.json with this exact shape:
+STEP 4 — Write emails.js AND emails.json sidecars:
 
-```json
-{
+**emails.js** (the file the dashboard loads via `<script src>` — bypasses file:// CORS):
+
+```js
+window.coworkEmails = {
   "generated_at": "<ISO timestamp now>",
   "accounts": [
     { "id": "acct1", "name": "[YOUR_EMAIL@gmail.com]", "color": "#60a5fa", "short": "[YOUR_HANDLE]" }
@@ -57,14 +58,12 @@ Also write [PROJECT FOLDER]\emails.json with this exact shape:
   "emails": [
     { "account": "acct1", "from": "...", "subject": "...", "preview": "...", "time": "..." }
   ]
-}
+};
 ```
+
+**emails.json** (legacy/debug — same object, no JS wrapper).
 
 Account colors in slot order: #60a5fa (blue), #fb923c (orange), #a78bfa (purple), #84cc16 (lime), #ec4899 (pink), #14b8a6 (teal), #facc15 (yellow). Add additional accounts to the array as the user connects them. Order emails: real people → security → receipts → recruiters → jobs → social → newsletters → promotional.
 
 STEP 5 — Save:
-- Write to dashboard_YYYY-MM-DD.html (today's date) and overwrite dashboard_today.html with same content
-- Also write emails.json
-- Present the file to the user
-
-TONE: Plain, direct. Empty states for missing data, never fabricate.
+- Write to dashboard_YYYY-MM-DD.html (today's date) and overwrite dashboard_today.html with same conte

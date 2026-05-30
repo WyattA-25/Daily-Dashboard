@@ -432,7 +432,7 @@
           <div class="legend-chip" style="opacity:0.4"><span class="dot" style="background:#facc15"></span><span>+ slot 7</span></div>
         </div>
         <div class="empty-state">
-          No emails loaded yet. <em>Once Cowork has run, your unread inbox will populate here color-coded by account. The page reads <code>emails.json</code> every 30 min — Cowork updates that file.</em>
+          No emails loaded yet. <em>Once Cowork has run, your unread inbox will populate here color-coded by account. The page reads <code>emails.js</code> every 30 min (and on Email tab click) — Cowork updates that file.</em>
         </div>
       </div>
     </div>
@@ -951,7 +951,9 @@
     track.innerHTML = html;
   }
   function fetchOne(s) {
-    var url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + s.y + '?interval=1d&range=2d';
+    // Yahoo Finance doesn't send CORS headers, so route through a free proxy.
+    var yahoo = 'https://query1.finance.yahoo.com/v8/finance/chart/' + s.y + '?interval=1d&range=2d';
+    var url = 'https://corsproxy.io/?' + encodeURIComponent(yahoo);
     return fetch(url).then(function(r){ return r.json(); }).then(function(j){
       try {
         var meta = j.chart.result[0].meta;
@@ -983,16 +985,22 @@
   });
 })();
 
-// ---------- 8. LIVE EMAILS — emails.json sidecar, every 30 min ----------
+// ---------- 8. LIVE EMAILS — emails.js sidecar via <script> tag (bypasses file:// CORS) ----------
 (function(){
   var COLORS = ['#60a5fa','#fb923c','#a78bfa','#84cc16','#ec4899','#14b8a6','#facc15'];
   var PILLS  = ['pill-1','pill-2','pill-3','pill-4','pill-5','pill-6','pill-7'];
   var ACCTS  = ['acct-1','acct-2','acct-3','acct-4','acct-5','acct-6','acct-7'];
-  function setStamp() {
+  function setStamp(count) {
     var el = document.getElementById('lastEmails'); if (!el) return;
     var d = new Date(), hh = d.getHours(), mm = d.getMinutes();
     var ampm = hh >= 12 ? 'pm' : 'am'; hh = hh % 12 || 12;
-    el.textContent = hh + ':' + (mm < 10 ? '0' + mm : mm) + ampm;
+    el.textContent = hh + ':' + (mm < 10 ? '0' + mm : mm) + ampm + (count != null ? ' (' + count + ')' : '');
+    el.style.color = '';
+  }
+  function showFetchError(msg) {
+    var el = document.getElementById('lastEmails');
+    if (el) { el.textContent = 'FAILED'; el.style.color = '#f87171'; el.title = msg; }
+    console.error('emails.js load failed:', msg);
   }
   function esc(s) {
     return String(s || '').replace(/[&<>"']/g, function(c){
@@ -1044,27 +1052,6 @@
     if (stat && data.unread_count != null) stat.textContent = data.unread_count;
   }
   function refreshEmails() {
-    fetch('emails.json?t=' + Date.now()).then(function(r){
-      if (!r.ok) throw new Error('no emails.json');
-      return r.json();
-    }).then(function(data){
-      rebuildEmails(data); setStamp();
-    }).catch(function(){ /* silent */ });
-  }
-  refreshEmails();
-  var lastFetch = Date.now();
-  var REFRESH_MS = 30 * 60 * 1000;
-  setInterval(function() {
-    if (document.hidden) return;
-    lastFetch = Date.now(); refreshEmails();
-  }, REFRESH_MS);
-  document.addEventListener('visibilitychange', function() {
-    if (!document.hidden && Date.now() - lastFetch > REFRESH_MS) {
-      lastFetch = Date.now(); refreshEmails();
-    }
-  });
-})();
-</script>
-
-</body>
-</html>
+    // Use <script src="emails.js"> instead of fetch — bypasses file:// CORS.
+    // emails.js sets window.coworkEmails = {...} (same data as emails.json, just JS-wrapped).
+  
