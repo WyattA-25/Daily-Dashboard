@@ -1,4 +1,4 @@
-# Cowork Morning Dashboard
+# Claude Powered Morning Dashboard
 
 A single-page browser dashboard that gives you your day at a glance — weather, stocks, unread email, calendar, news on tracked topics, reminders, notes, and project summaries. It auto-refreshes the live bits from your browser and gets a full rebuild from Cowork once a day.
 
