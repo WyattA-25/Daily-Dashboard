@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Morning Dashboard - Cowork</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: radial-gradient(ellipse at top left, #1a2540 0%, #0a0e1a 50%, #0f0a14 100%);
+    color: #e8eaed;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .app { display: grid; grid-template-columns: 220px 1fr 320px; min-height: 100vh; gap: 0; }
+
+  .sidebar-left {
+    background: linear-gradient(180deg, rgba(20, 30, 55, 0.6) 0%, rgba(15, 15, 30, 0.6) 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 24px 16px;
+    backdrop-filter: blur(10px);
+  }
+  .logo {
+    font-size: 20px; font-weight: 700;
+    background: linear-gradient(135deg, #60a5fa 0%, #fb923c 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 30px; padding: 0 8px; letter-spacing: 1px;
+  }
+  .sidebar-section { margin-bottom: 24px; }
+  .sidebar-label { font-size: 10px; color: #5a6478; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; padding: 0 8px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px; cursor: pointer; margin-bottom: 4px;
+    font-size: 13px; color: #94a3b8; transition: all 0.2s; border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: rgba(96, 165, 250, 0.08); color: #e8eaed; }
+  .nav-item.active {
+    background: linear-gradient(90deg, rgba(96, 165, 250, 0.15) 0%, rgba(251, 146, 60, 0.05) 100%);
+    color: #fff; border-left-color: #60a5fa;
+  }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+
+  .main { padding: 24px 28px; overflow-y: auto; max-height: 100vh; }
+  .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .greeting h1 {
+    font-size: 26px; font-weight: 600;
+    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .greeting-sub { font-size: 13px; color: #64748b; margin-top: 4px; }
+  .header-actions { display: flex; align-items: center; gap: 12px; }
+  .last-refresh { font-size: 12px; color: #64748b; }
+
+  .ticker-bar {
+    background: linear-gradient(90deg, rgba(30, 41, 75, 0.6) 0%, rgba(40, 25, 20, 0.6) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px 0; margin-bottom: 20px;
+    overflow: hidden; position: relative;
+  }
+  .ticker-track { display: flex; gap: 40px; animation: scroll-ticker 40s linear infinite; white-space: nowrap; }
+  @keyframes scroll-ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .ticker-item { display: flex; align-items: center; gap: 10px; font-size: 13px; flex-shrink: 0; padding-left: 40px; }
+  .ticker-symbol { font-weight: 700; color: #fff; }
+  .ticker-price { color: #cbd5e1; }
+  .ticker-change { font-size: 12px; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+  .ticker-up { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+  .ticker-down { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+  .card {
+    background: linear-gradient(135deg, rgba(30, 41, 75, 0.4) 0%, rgba(20, 20, 35, 0.4) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px; padding: 20px; margin-bottom: 16px;
+    backdrop-filter: blur(10px); position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.3), transparent);
+  }
+  .card-title {
+    font-size: 14px; font-weight: 600; color: #fff;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .card-subtitle { font-size: 11px; color: #64748b; font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 8px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+  .weather-card { background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(20, 30, 55, 0.5) 100%); border: 1px solid rgba(96, 165, 250, 0.2); }
+  .weather-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .weather-nav { display: flex; align-items: center; gap: 8px; }
+  .weather-nav-btn {
+    background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08);
+    color: #cbd5e1; width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+    font-size: 14px; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .weather-nav-btn:hover { background: rgba(96,165,250,0.18); color: #fff; }
+  .weather-city-name { font-size: 13px; color: #fff; font-weight: 600; min-width: 130px; text-align: center; }
+  .weather-city-dots { display: flex; justify-content: center; gap: 5px; margin-top: 4px; }
+  .weather-city-dots .d { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.2); }
+  .weather-city-dots .d.active { background: #60a5fa; }
+
+  .weather-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .weather-left .weather-temp {
+    font-size: 44px; font-weight: 700;
+    background: linear-gradient(135deg, #fff 0%, #fb923c 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    line-height: 1;
+  }
+  .weather-condition { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+  .weather-location { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .weather-icon-large { font-size: 56px; line-height: 1; }
+  .weather-graph { height: 100px; position: relative; margin-top: 12px; }
+  .weather-graph svg { width: 100%; height: 100%; }
+  .weather-conditions { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+  .weather-day-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+  .condition-icon { font-size: 18px; line-height: 1; }
+  .day-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .stats-card { background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(35, 25, 20, 0.5) 100%); border: 1px solid rgba(251, 146, 60, 0.15); }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat-box { background: rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.04); }
+  .stat-value { font-size: 22px; font-weight: 700; color: #fff; line-height: 1; }
+  .stat-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
+  .stat-blue .stat-value { color: #60a5fa; }
+  .stat-orange .stat-value { color: #fb923c; }
+
+  .think-card { background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(20, 30, 55, 0.5) 100%); border: 1px solid rgba(96, 165, 250, 0.15); }
+  .think-content { font-size: 14px; line-height: 1.6; color: #dbeafe; font-style: italic; }
+  .think-icon { font-size: 18px; margin-right: 6px; }
+  .riddle-card { background: linear-gradient(135deg, rgba(251, 146, 60, 0.18) 0%, rgba(35, 20, 15, 0.5) 100%); border: 1px solid rgba(251, 146, 60, 0.15); }
+  .riddle-question { font-size: 13px; line-height: 1.5; color: #fed7aa; margin-bottom: 12px; }
+  .reveal-btn {
+    background: linear-gradient(135deg, #f97316, #fb923c); color: white; border: none;
+    padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .reveal-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3); }
+  .riddle-answer { margin-top: 12px; padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; font-size: 13px; color: #fdba74; display: none; }
+  .riddle-answer.visible { display: block; }
+  .riddle-icon { font-size: 18px; margin-right: 6px; }
+
+  .reminder-item {
+    display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.2); border-radius: 10px; margin-bottom: 8px;
+    border-left: 3px solid #fb923c;
+  }
+  .reminder-item.urgent { border-left-color: #ef4444; }
+  .reminder-item.info { border-left-color: #60a5fa; }
+  .reminder-text { font-size: 13px; line-height: 1.4; flex: 1; }
+  .reminder-text strong { color: #fff; }
+  .reminder-text span { color: #94a3b8; display: block; margin-top: 2px; font-size: 11px; }
+
+  .sidebar-right {
+    background: linear-gradient(180deg, rgba(20, 30, 55, 0.6) 0%, rgba(35, 20, 15, 0.4) 100%);
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 24px 20px; overflow-y: auto; max-height: 100vh;
+    backdrop-filter: blur(10px);
+  }
+  .sidebar-right-title { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; }
+  .activity-item { padding: 12px; background: rgba(0, 0, 0, 0.2); border-radius: 10px; margin-bottom: 8px; border-left: 2px solid #60a5fa; font-size: 12px; }
+  .activity-item.orange { border-left-color: #fb923c; }
+  .activity-time { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .activity-title { color: #fff; font-weight: 500; margin-bottom: 2px; }
+  .activity-desc { color: #94a3b8; line-height: 1.4; }
+
+  .email-item, .calendar-event {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px; background: rgba(0, 0, 0, 0.2); border-radius: 10px;
+    margin-bottom: 8px; cursor: pointer; transition: background 0.2s;
+    border-left: 3px solid;
+  }
+  .email-item:hover { background: rgba(96, 165, 250, 0.06); }
+  .email-content { flex: 1; min-width: 0; }
+  .email-from { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .email-subject { font-size: 12px; color: #cbd5e1; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .email-preview { font-size: 11px; color: #64748b; line-height: 1.4; }
+  .email-time { font-size: 10px; color: #64748b; flex-shrink: 0; }
+
+  .acct-1 { border-left-color: #60a5fa; }
+  .acct-2 { border-left-color: #fb923c; }
+  .acct-3 { border-left-color: #a78bfa; }
+  .acct-4 { border-left-color: #84cc16; }
+  .acct-5 { border-left-color: #ec4899; }
+  .acct-6 { border-left-color: #14b8a6; }
+  .acct-7 { border-left-color: #facc15; }
+
+  .acct-pill { font-size: 9px; padding: 2px 7px; border-radius: 5px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .pill-1 { background: rgba(96,165,250,0.15);  color: #93c5fd; }
+  .pill-2 { background: rgba(251,146,60,0.15);  color: #fdba74; }
+  .pill-3 { background: rgba(167,139,250,0.15); color: #c4b5fd; }
+  .pill-4 { background: rgba(132,204,22,0.18);  color: #bef264; }
+  .pill-5 { background: rgba(236,72,153,0.15);  color: #f9a8d4; }
+  .pill-6 { background: rgba(20,184,166,0.18);  color: #5eead4; }
+  .pill-7 { background: rgba(250,204,21,0.18);  color: #fde047; }
+
+  .email-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; padding: 12px; background: rgba(0, 0, 0, 0.15); border-radius: 10px; }
+  .legend-chip { display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(0, 0, 0, 0.25); border-radius: 999px; font-size: 11px; color: #cbd5e1; }
+  .legend-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .legend-chip .count { font-weight: 700; color: #fff; }
+
+  .cal-google { border-left-color: #60a5fa; }
+  .cal-outlook { border-left-color: #fb923c; }
+  .event-time { font-size: 12px; color: #94a3b8; font-weight: 500; min-width: 100px; flex-shrink: 0; }
+  .event-title { font-size: 13px; color: #fff; font-weight: 500; }
+  .event-meta { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+  .legend { display: flex; gap: 16px; font-size: 11px; color: #94a3b8; margin-bottom: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .calendar-section { margin-bottom: 14px; }
+  .calendar-section h4 { font-size: 11px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+
+  .topic-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .topic-chip {
+    padding: 6px 12px; background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.06); border-radius: 999px;
+    font-size: 11px; color: #cbd5e1; cursor: pointer;
+    text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.15s;
+  }
+  .topic-chip:hover { background: rgba(96,165,250,0.1); }
+  .topic-chip.active { background: linear-gradient(135deg, rgba(96,165,250,0.3), rgba(251,146,60,0.2)); color: #fff; border-color: rgba(96,165,250,0.3); }
+
+  .news-item { padding: 16px; background: rgba(0, 0, 0, 0.2); border-radius: 12px; margin-bottom: 10px; border-left: 3px solid #60a5fa; }
+  .news-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+  .news-tag { padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+
+  .topic-ai       { border-left-color: #60a5fa; }  .tag-ai       { background: rgba(96,165,250,0.18); color: #93c5fd; }
+  .topic-tech     { border-left-color: #a78bfa; }  .tag-tech     { background: rgba(167,139,250,0.18); color: #c4b5fd; }
+  .topic-compeng  { border-left-color: #06b6d4; }  .tag-compeng  { background: rgba(6,182,212,0.18); color: #67e8f9; }
+  .topic-3dprint  { border-left-color: #fb923c; }  .tag-3dprint  { background: rgba(251,146,60,0.18); color: #fdba74; }
+  .topic-camping  { border-left-color: #84cc16; }  .tag-camping  { background: rgba(132,204,22,0.18); color: #bef264; }
+  .topic-politics { border-left-color: #ef4444; }  .tag-politics { background: rgba(239,68,68,0.18); color: #fca5a5; }
+  .topic-gaming   { border-left-color: #ec4899; }  .tag-gaming   { background: rgba(236,72,153,0.18); color: #f9a8d4; }
+
+  .news-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 6px; line-height: 1.4; }
+  .news-summary { font-size: 12px; color: #cbd5e1; line-height: 1.6; }
+
+  .notes-container { display: grid; grid-template-columns: 220px 1fr; gap: 16px; min-height: 500px; }
+  .notes-sidebar {
+    background: linear-gradient(135deg, rgba(30, 41, 75, 0.3) 0%, rgba(20, 20, 35, 0.3) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px; padding: 16px;
+  }
+  .notes-project-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 4px; font-size: 13px; color: #cbd5e1; transition: all 0.2s; }
+  .notes-project-item:hover { background: rgba(96, 165, 250, 0.08); }
+  .notes-project-item.active { background: linear-gradient(90deg, rgba(96, 165, 250, 0.25), rgba(251, 146, 60, 0.15)); color: #fff; border-left: 3px solid #60a5fa; }
+  .notes-editor {
+    background: linear-gradient(135deg, rgba(30, 41, 75, 0.3) 0%, rgba(20, 20, 35, 0.3) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px; padding: 20px;
+    display: flex; flex-direction: column;
+  }
+  .notes-textarea {
+    flex: 1; background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 10px;
+    padding: 16px; color: #e8eaed; font-family: inherit; font-size: 14px;
+    line-height: 1.6; resize: none; min-height: 400px;
+  }
+  .notes-textarea:focus { outline: none; border-color: rgba(96, 165, 250, 0.4); }
+
+  .project-card { padding: 16px; background: rgba(0, 0, 0, 0.2); border-radius: 12px; margin-bottom: 10px; border-left: 3px solid #60a5fa; }
+  .project-card:nth-child(even) { border-left-color: #fb923c; }
+  .project-name { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .project-last-update { font-size: 10px; color: #64748b; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .project-summary { font-size: 12px; color: #cbd5e1; line-height: 1.6; }
+  .project-flag { display: inline-block; background: rgba(239, 68, 68, 0.15); color: #fca5a5; padding: 3px 8px; border-radius: 6px; font-size: 10px; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .add-btn {
+    width: 100%; padding: 10px;
+    background: transparent;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 10px; color: #64748b; font-size: 12px;
+    cursor: pointer; margin-top: 8px; transition: all 0.2s;
+  }
+  .add-btn:hover { border-color: rgba(96, 165, 250, 0.3); color: #94a3b8; }
+
+  .mockup-banner {
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    color: #0a0e1a; padding: 10px 16px; border-radius: 12px;
+    margin-bottom: 16px; font-size: 12px; font-weight: 500;
+  }
+  .empty-state {
+    padding: 24px; text-align: center;
+    color: #64748b; font-size: 13px; line-height: 1.6;
+  }
+  .empty-state em { color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar-left">
+    <div class="logo">DASHBOARD</div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <div class="nav-item active" data-tab="dashboard"><span class="nav-dot"></span>Overview</div>
+      <div class="nav-item" data-tab="email"><span class="nav-dot"></span>Email</div>
+      <div class="nav-item" data-tab="calendar"><span class="nav-dot"></span>Calendar</div>
+      <div class="nav-item" data-tab="news"><span class="nav-dot"></span>News &amp; Research</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Workspace</div>
+      <div class="nav-item" data-tab="notes"><span class="nav-dot"></span>Notes</div>
+      <div class="nav-item" data-tab="projects"><span class="nav-dot"></span>Projects</div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="mockup-banner">
+      <strong>Template:</strong> Open this folder in Cowork and run the 7 AM rebuild (or trigger it manually) to populate real data. Weather and stocks already work — emails and the rest fill in once Cowork has run.
+    </div>
+
+    <div class="main-header">
+      <div class="greeting">
+        <h1>Good morning</h1>
+        <div class="greeting-sub">Today · Your dashboard at a glance</div>
+      </div>
+      <div class="header-actions">
+        <div class="last-refresh" style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+          <span>Weather: <span id="lastRefresh">—</span></span>
+          <span style="font-size:11px; opacity:0.8;">Stocks: <span id="lastStocks">—</span> · Emails: <span id="lastEmails">—</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ticker-bar">
+      <div class="ticker-track" id="tickerTrack"></div>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    <div class="tab-content active" id="dashboard">
+
+      <div class="grid-2">
+
+        <div class="card weather-card">
+          <div class="weather-header">
+            <div class="card-title" style="margin: 0;">Weather</div>
+            <div class="weather-nav">
+              <button class="weather-nav-btn" id="weatherPrev" title="Previous city">‹</button>
+              <div>
+                <div class="weather-city-name" id="weatherCity">Loading…</div>
+                <div class="weather-city-dots" id="weatherDots"></div>
+              </div>
+              <button class="weather-nav-btn" id="weatherNext" title="Next city">›</button>
+            </div>
+          </div>
+          <div class="weather-top">
+            <div class="weather-left">
+              <div class="weather-temp" id="weatherTemp">--°</div>
+              <div class="weather-condition" id="weatherCond">Loading…</div>
+              <div class="weather-location" id="weatherHiLo">H: --°  ·  L: --°</div>
+            </div>
+            <div class="weather-icon-large" id="weatherIcon">⛅</div>
+          </div>
+          <div class="weather-graph">
+            <svg id="weatherSvg" viewBox="0 0 600 100" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <linearGradient id="weatherGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#fb923c" stop-opacity="0.4"/>
+                  <stop offset="100%" stop-color="#fb923c" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="weatherGradLow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="#60a5fa" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="weather-conditions" id="weatherDays"></div>
+        </div>
+
+        <div class="card stats-card">
+          <div class="card-title">📊 Quick Stats</div>
+          <div class="stats-grid">
+            <div class="stat-box stat-blue"><div class="stat-value">0</div><div class="stat-label">Unread emails</div></div>
+            <div class="stat-box stat-orange"><div class="stat-value">0</div><div class="stat-label">Events today</div></div>
+            <div class="stat-box stat-blue"><div class="stat-value">0</div><div class="stat-label">News items</div></div>
+            <div class="stat-box stat-orange"><div class="stat-value">0</div><div class="stat-label">Reminders</div></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="grid-2">
+
+        <div class="card think-card">
+          <div class="card-title"><span class="think-icon">🤔</span> One Thing to Think About</div>
+          <div class="think-content">
+            "What's one small task you've been putting off that would take less than 15 minutes to finish?"
+          </div>
+        </div>
+
+        <div class="card riddle-card">
+          <div class="card-title"><span class="riddle-icon">🧩</span> Riddle of the Day</div>
+          <div class="riddle-question">
+            I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?
+          </div>
+          <button class="reveal-btn" id="riddleBtn">Reveal answer</button>
+          <div class="riddle-answer" id="riddleAnswer">An echo.</div>
+        </div>
+
+      </div>
+
+      <div class="card">
+        <div class="card-title">Things That Need Your Attention</div>
+        <div class="empty-state">No reminders yet. <em>The 7 AM rebuild will populate based on your calendar RSVPs, subscriptions, and recurring reminders.</em></div>
+      </div>
+
+    </div>
+
+    <!-- EMAIL TAB -->
+    <div class="tab-content" id="email">
+      <div class="card">
+        <div class="card-title">Recent Email <span class="card-subtitle">Last 48 hours, unread · auto-refreshes every 30 min</span></div>
+        <div class="email-legend">
+          <div class="legend-chip"><span class="dot" style="background:#60a5fa"></span><span>your-email@example.com</span><span class="count">0</span></div>
+          <div class="legend-chip" style="opacity:0.4"><span class="dot" style="background:#fb923c"></span><span>+ slot 2</span></div>
+          <div class="legend-chip" style="opacity:0.4"><span class="dot" style="background:#a78bfa"></span><span>+ slot 3</span></div>
+          <div class="legend-chip" style="opacity:0.4"><span class="dot" style="background:#84cc16"></span><span>+ slot 4</span></div>
+          <div class="legend-chip" style="opacity:0.4"><span class="dot" style="background:#ec4899"></span><span>+ slot 5</span></div>
+          <div class="legend-chip" style="opacity:0.4"><span class="dot" style="background:#14b8a6"></span><span>+ slot 6</span></div>
+          <div class="legend-chip" style="opacity:0.4"><span class="dot" style="background:#facc15"></span><span>+ slot 7</span></div>
+        </div>
+        <div class="empty-state">
+          No emails loaded yet. <em>Once Cowork has run, your unread inbox will populate here color-coded by account. The page reads <code>emails.json</code> every 30 min — Cowork updates that file.</em>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR TAB -->
+    <div class="tab-content" id="calendar">
+      <div class="card">
+        <div class="card-title">Calendar Overview</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>Google Calendar</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#fb923c"></div>Outlook</div>
+        </div>
+        <div class="empty-state">
+          No calendar data yet. <em>Connect Google Calendar (or Outlook) in Cowork Settings → Connectors, then run the 7 AM task. Your events will appear here by day.</em>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEWS TAB -->
+    <div class="tab-content" id="news">
+      <div class="card">
+        <div class="card-title">Topic Updates <span class="card-subtitle">Last 36 hours · Click a topic to filter</span></div>
+        <div class="topic-filter" id="topicFilter">
+          <div class="topic-chip active" data-topic="all">All</div>
+          <div class="topic-chip" data-topic="ai">AI / Automation</div>
+          <div class="topic-chip" data-topic="tech">Tech / Startups</div>
+          <div class="topic-chip" data-topic="compeng">Computer / Engineering</div>
+          <div class="topic-chip" data-topic="3dprint">3D Printing</div>
+          <div class="topic-chip" data-topic="camping">Camping</div>
+          <div class="topic-chip" data-topic="politics">Politics</div>
+          <div class="topic-chip" data-topic="gaming">Gaming</div>
+        </div>
+        <div class="empty-state">
+          No news yet. <em>The 7 AM rebuild pulls the strongest headlines from the last 36 hours on each tracked topic. Tell Cowork to add or remove topics anytime — the filter chips above adjust automatically.</em>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES TAB -->
+    <div class="tab-content" id="notes">
+      <div class="notes-container">
+        <div class="notes-sidebar">
+          <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding: 0 4px;">My Notes</div>
+          <div id="projectList">
+            <div class="notes-project-item active" data-project="dashboard">Daily Dashboard</div>
+          </div>
+          <button class="add-btn" id="addNoteBtn" style="margin-top: 12px;">+ Add a note</button>
+        </div>
+        <div class="notes-editor">
+          <div id="notesLabel" style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">Daily Dashboard — notes</div>
+          <textarea class="notes-textarea" id="notesArea" placeholder="Notes save automatically to your browser's localStorage. Click '+ Add a note' to create more notepads."></textarea>
+          <div style="display: flex; gap: 8px; margin-top: 12px; align-items: center;">
+            <button class="reveal-btn" id="saveNoteBtn">Save</button>
+            <div style="font-size: 12px; color: #4ade80; margin-left: auto;" id="saveStatus"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECTS TAB -->
+    <div class="tab-content" id="projects">
+      <div class="card">
+        <div class="card-title">Project Activity Summaries <span class="card-subtitle">Click a title to name the project</span></div>
+        <div class="empty-state">
+          No projects linked yet. <em>Tell Cowork "Add my [Project Name] project to the dashboard summary list" and it'll appear here with a 2–3 sentence rolling summary built from that project's activity.</em>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <aside class="sidebar-right">
+    <div class="sidebar-right-title">Today's Schedule</div>
+    <div class="empty-state" style="padding: 12px 0;">Nothing on the calendar yet.</div>
+    <div class="sidebar-right-title" style="margin-top: 24px;">Next Up</div>
+    <div class="empty-state" style="padding: 12px 0;">—</div>
+  </aside>
+
+</div>
+
+<script>
+// ---------- 1. TICKER (synchronous fallback — Yahoo Finance auto-refreshes below) ----------
+(function(){
+  try {
+    var stocks = [
+      { sym: 'NVDA', price: '—', change: '—', up: true },
+      { sym: 'AAPL', price: '—', change: '—', up: true },
+      { sym: 'MSFT', price: '—', change: '—', up: true },
+      { sym: 'GOOGL', price: '—', change: '—', up: true },
+      { sym: 'TSLA', price: '—', change: '—', up: true },
+      { sym: 'AMZN', price: '—', change: '—', up: true },
+      { sym: 'META', price: '—', change: '—', up: true },
+      { sym: 'S&P 500', price: '—', change: '—', up: true },
+      { sym: 'DOW', price: '—', change: '—', up: true },
+      { sym: 'NASDAQ', price: '—', change: '—', up: true },
+      { sym: 'BTC', price: '—', change: '—', up: true },
+      { sym: 'GOLD', price: '—', change: '—', up: true },
+      { sym: 'OIL (WTI)', price: '—', change: '—', up: true },
+      { sym: '10Y YIELD', price: '—', change: '—', up: true }
+    ];
+    var track = document.getElementById('tickerTrack');
+    if (!track) return;
+    var html = '';
+    var all = stocks.concat(stocks);
+    for (var i = 0; i < all.length; i++) {
+      var s = all[i];
+      var arrow = s.up ? '▲' : '▼';
+      var cls = s.up ? 'ticker-up' : 'ticker-down';
+      html += '<div class="ticker-item">'
+            + '<span class="ticker-symbol">' + s.sym + '</span>'
+            + '<span class="ticker-price">' + s.price + '</span>'
+            + '<span class="ticker-change ' + cls + '">' + arrow + ' ' + s.change + '</span>'
+            + '</div>';
+    }
+    track.innerHTML = html;
+  } catch(e) { console.error('ticker error', e); }
+})();
+
+// ---------- 2. TAB SWITCHING ----------
+(function(){
+  try {
+    var navItems = document.querySelectorAll('.nav-item');
+    for (var i = 0; i < navItems.length; i++) {
+      navItems[i].addEventListener('click', function() {
+        var tab = this.getAttribute('data-tab');
+        if (!tab) return;
+        var allNav = document.querySelectorAll('.nav-item');
+        var allTabs = document.querySelectorAll('.tab-content');
+        for (var j = 0; j < allNav.length; j++) allNav[j].classList.remove('active');
+        for (var k = 0; k < allTabs.length; k++) allTabs[k].classList.remove('active');
+        this.classList.add('active');
+        var target = document.getElementById(tab);
+        if (target) target.classList.add('active');
+      });
+    }
+  } catch(e) { console.error('tab switch error', e); }
+})();
+
+// ---------- 3. RIDDLE ----------
+(function(){
+  try {
+    var btn = document.getElementById('riddleBtn');
+    var ans = document.getElementById('riddleAnswer');
+    if (!btn || !ans) return;
+    btn.addEventListener('click', function() {
+      ans.classList.toggle('visible');
+      btn.textContent = ans.classList.contains('visible') ? 'Hide answer' : 'Reveal answer';
+    });
+  } catch(e) { console.error('riddle error', e); }
+})();
+
+// ---------- 4. NEWS TOPIC FILTER ----------
+(function(){
+  try {
+    var chips = document.querySelectorAll('.topic-chip');
+    for (var i = 0; i < chips.length; i++) {
+      chips[i].addEventListener('click', function() {
+        var topic = this.getAttribute('data-topic');
+        var allChips = document.querySelectorAll('.topic-chip');
+        for (var j = 0; j < allChips.length; j++) allChips[j].classList.remove('active');
+        this.classList.add('active');
+        var items = document.querySelectorAll('.news-item');
+        for (var k = 0; k < items.length; k++) {
+          items[k].style.display = (topic === 'all' || items[k].getAttribute('data-topic') === topic) ? '' : 'none';
+        }
+      });
+    }
+  } catch(e) { console.error('topic filter error', e); }
+})();
+
+// ---------- 5. NOTES (localStorage, auto-save, + Add a note) ----------
+(function(){
+  try {
+    var NOTE_KEY = 'cowork-dashboard-notes';
+    var NAMES_KEY = 'cowork-dashboard-note-names';
+    var SAVED_KEY = 'cowork-dashboard-note-saved-at';
+    var notes = {};
+    var noteNames = {};
+    var savedAt = {};
+    try { notes = JSON.parse(localStorage.getItem(NOTE_KEY) || '{}'); } catch(_) { notes = {}; }
+    try { noteNames = JSON.parse(localStorage.getItem(NAMES_KEY) || '{}'); } catch(_) { noteNames = {}; }
+    try { savedAt = JSON.parse(localStorage.getItem(SAVED_KEY) || '{}'); } catch(_) { savedAt = {}; }
+    if (!notes.dashboard) {
+      notes.dashboard = "Welcome to your dashboard.\n\nNotes save automatically to your browser's localStorage. They persist across sessions, restarts, and reboots — just not if you move or rename this file.\n\nClick '+ Add a note' to create more notepads.";
+    }
+    var current = 'dashboard';
+    var area = document.getElementById('notesArea');
+    var label = document.getElementById('notesLabel');
+    var status = document.getElementById('saveStatus');
+    var saveBtn = document.getElementById('saveNoteBtn');
+    if (area) area.value = notes[current] || '';
+
+    function fmtTime(ts) {
+      if (!ts) return 'never';
+      var d = new Date(ts);
+      var today = new Date();
+      var sameDay = d.toDateString() === today.toDateString();
+      var hh = d.getHours(), mm = d.getMinutes();
+      var ampm = hh >= 12 ? 'pm' : 'am';
+      hh = hh % 12 || 12;
+      var mmStr = mm < 10 ? '0' + mm : mm;
+      if (sameDay) return 'today at ' + hh + ':' + mmStr + ampm;
+      return d.toLocaleDateString() + ' ' + hh + ':' + mmStr + ampm;
+    }
+    function showSaved() {
+      if (status) status.textContent = '✓ Saved ' + fmtTime(savedAt[current]);
+    }
+    function persist() {
+      if (!area) return;
+      notes[current] = area.value;
+      savedAt[current] = Date.now();
+      localStorage.setItem(NOTE_KEY, JSON.stringify(notes));
+      localStorage.setItem(SAVED_KEY, JSON.stringify(savedAt));
+      showSaved();
+    }
+    showSaved();
+
+    var debounceTimer = null;
+    if (area) {
+      area.addEventListener('input', function() {
+        if (status) status.textContent = 'Saving…';
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(persist, 600);
+      });
+    }
+
+    function wireItem(el) {
+      el.addEventListener('click', function() {
+        if (area) { notes[current] = area.value; localStorage.setItem(NOTE_KEY, JSON.stringify(notes)); }
+        var allP = document.querySelectorAll('.notes-project-item');
+        for (var j = 0; j < allP.length; j++) allP[j].classList.remove('active');
+        this.classList.add('active');
+        current = this.getAttribute('data-project');
+        if (area) area.value = notes[current] || '';
+        if (label) label.textContent = this.textContent.trim() + ' — notes';
+        showSaved();
+      });
+    }
+
+    var projList = document.getElementById('projectList');
+    if (projList) {
+      for (var k in noteNames) {
+        if (!noteNames.hasOwnProperty(k)) continue;
+        if (document.querySelector('[data-project="' + k + '"]')) continue;
+        var it = document.createElement('div');
+        it.className = 'notes-project-item';
+        it.setAttribute('data-project', k);
+        it.textContent = noteNames[k];
+        wireItem(it);
+        projList.appendChild(it);
+      }
+    }
+    var existing = document.querySelectorAll('.notes-project-item');
+    for (var i = 0; i < existing.length; i++) wireItem(existing[i]);
+
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function() {
+        clearTimeout(debounceTimer);
+        persist();
+      });
+    }
+
+    var addBtn = document.getElementById('addNoteBtn');
+    if (addBtn && projList) {
+      addBtn.addEventListener('click', function() {
+        if (document.getElementById('addNoteInput')) { document.getElementById('addNoteInput').focus(); return; }
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex; gap:6px; margin-top:8px;';
+        var inp = document.createElement('input');
+        inp.id = 'addNoteInput';
+        inp.type = 'text';
+        inp.placeholder = 'Note name…';
+        inp.style.cssText = 'flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(96,165,250,0.4); border-radius:8px; padding:6px 10px; color:#e8eaed; font-family:inherit; font-size:12px; outline:none;';
+        var ok = document.createElement('button');
+        ok.textContent = 'Add';
+        ok.style.cssText = 'background:linear-gradient(135deg,#3b82f6,#60a5fa); border:none; color:#fff; padding:6px 12px; border-radius:8px; font-size:12px; cursor:pointer;';
+        function commit() {
+          var name = (inp.value || '').trim();
+          if (!name) { row.remove(); return; }
+          var key = 'note-' + Date.now();
+          var item = document.createElement('div');
+          item.className = 'notes-project-item';
+          item.setAttribute('data-project', key);
+          item.textContent = name;
+          wireItem(item);
+          projList.appendChild(item);
+          notes[key] = '';
+          noteNames[key] = name;
+          localStorage.setItem(NOTE_KEY, JSON.stringify(notes));
+          localStorage.setItem(NAMES_KEY, JSON.stringify(noteNames));
+          row.remove();
+          item.click();
+        }
+        ok.addEventListener('click', commit);
+        inp.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') commit();
+          if (e.key === 'Escape') row.remove();
+        });
+        row.appendChild(inp);
+        row.appendChild(ok);
+        addBtn.parentNode.insertBefore(row, addBtn);
+        inp.focus();
+      });
+    }
+  } catch(e) { console.error('notes error', e); }
+})();
+
+// ---------- 6. WEATHER — 3 cities, arrow nav, Open-Meteo (no API key) ----------
+// EDIT THE CITIES ARRAY BELOW TO YOUR OWN.
+(function(){
+  var CITIES = [
+    { name: 'New York, NY',    lat: 40.71, lon: -74.01 },
+    { name: 'Chicago, IL',     lat: 41.88, lon: -87.63 },
+    { name: 'Los Angeles, CA', lat: 34.05, lon: -118.24 }
+  ];
+  var WMO = {
+    0:['☀️','Clear'], 1:['🌤️','Mostly clear'], 2:['⛅','Partly cloudy'], 3:['☁️','Cloudy'],
+    45:['🌫️','Fog'], 48:['🌫️','Rime fog'],
+    51:['🌦️','Light drizzle'], 53:['🌦️','Drizzle'], 55:['🌦️','Heavy drizzle'],
+    61:['🌧️','Light rain'], 63:['🌧️','Rain'], 65:['🌧️','Heavy rain'],
+    66:['🌧️','Freezing rain'], 67:['🌧️','Freezing rain'],
+    71:['🌨️','Light snow'], 73:['🌨️','Snow'], 75:['🌨️','Heavy snow'],
+    77:['🌨️','Snow grains'],
+    80:['🌧️','Rain showers'], 81:['🌧️','Rain showers'], 82:['⛈️','Violent showers'],
+    85:['🌨️','Snow showers'], 86:['🌨️','Snow showers'],
+    95:['⛈️','Thunderstorm'], 96:['⛈️','T-storm + hail'], 99:['⛈️','T-storm + hail']
+  };
+  var cache = {};
+  var idx = 1;
+  function $(id) { return document.getElementById(id); }
+  function setText(id, text) { var el = $(id); if (el) el.textContent = text; }
+  function setRefreshTime() {
+    var lr = $('lastRefresh');
+    if (!lr) return;
+    var d = new Date(), hh = d.getHours(), mm = d.getMinutes();
+    var ampm = hh >= 12 ? 'pm' : 'am'; hh = hh % 12 || 12;
+    lr.textContent = hh + ':' + (mm < 10 ? '0' + mm : mm) + ampm;
+  }
+  function renderDots() {
+    var dots = $('weatherDots'); if (!dots) return;
+    var html = '';
+    for (var i = 0; i < CITIES.length; i++) html += '<div class="d' + (i === idx ? ' active' : '') + '"></div>';
+    dots.innerHTML = html;
+  }
+  function renderForecast(daily) {
+    try {
+      var svg = $('weatherSvg'), days = $('weatherDays');
+      if (!svg || !days || !daily) return;
+      var W = svg.clientWidth || 600, H = 100;
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      svg.setAttribute('preserveAspectRatio', 'none');
+      var highs = daily.temperature_2m_max.map(function(v){ return Math.round(v); });
+      var lows  = daily.temperature_2m_min.map(function(v){ return Math.round(v); });
+      var all = highs.concat(lows);
+      var min = Math.min.apply(null, all), max = Math.max.apply(null, all);
+      var range = Math.max(1, max - min);
+      function norm(v) { return 15 + (1 - (v - min) / range) * 60; }
+      function ptString(arr) {
+        var pts = [];
+        for (var i = 0; i < arr.length; i++) {
+          var x = (i + 0.5) * W / arr.length;
+          pts.push(x + ' ' + norm(arr[i]));
+        }
+        return pts;
+      }
+      var hiPts = ptString(highs), loPts = ptString(lows);
+      function linePath(pts) { return 'M ' + pts.join(' L '); }
+      function fillPath(pts) { return 'M ' + pts.join(' L ') + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z'; }
+      function dots(pts, color) {
+        var s = '';
+        for (var i = 0; i < pts.length; i++) {
+          var xy = pts[i].split(' ');
+          s += '<circle cx="' + xy[0] + '" cy="' + xy[1] + '" r="3" fill="' + color + '"/>';
+        }
+        return s;
+      }
+      function labels(vals, pts, color, dy) {
+        var s = '';
+        for (var i = 0; i < pts.length; i++) {
+          var xy = pts[i].split(' ');
+          var x = parseFloat(xy[0]), y = parseFloat(xy[1]) + dy;
+          s += '<text x="' + x + '" y="' + y + '" fill="' + color + '" font-size="10" font-family="sans-serif" text-anchor="middle">' + vals[i] + '</text>';
+        }
+        return s;
+      }
+      var defs = '<defs>'
+        + '<linearGradient id="weatherGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fb923c" stop-opacity="0.4"/><stop offset="100%" stop-color="#fb923c" stop-opacity="0"/></linearGradient>'
+        + '<linearGradient id="weatherGradLow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#60a5fa" stop-opacity="0.3"/><stop offset="100%" stop-color="#60a5fa" stop-opacity="0"/></linearGradient>'
+        + '</defs>';
+      svg.innerHTML = defs
+        + '<path d="' + fillPath(hiPts) + '" fill="url(#weatherGrad)"/>'
+        + '<path d="' + linePath(hiPts) + '" fill="none" stroke="#fb923c" stroke-width="2"/>'
+        + '<path d="' + fillPath(loPts) + '" fill="url(#weatherGradLow)"/>'
+        + '<path d="' + linePath(loPts) + '" fill="none" stroke="#60a5fa" stroke-width="2"/>'
+        + dots(hiPts, '#fb923c') + dots(loPts, '#60a5fa')
+        + labels(highs, hiPts, '#fb923c', -5) + labels(lows, loPts, '#60a5fa', 13);
+      var dayLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      var today = new Date().getDay();
+      var html = '';
+      for (var i = 0; i < daily.weather_code.length; i++) {
+        var wmo = WMO[daily.weather_code[i]] || ['⛅', ''];
+        var lbl = i === 0 ? 'Today' : dayLabels[(today + i) % 7];
+        html += '<div class="weather-day-col"><div class="condition-icon">' + wmo[0] + '</div><div class="day-label">' + lbl + '</div></div>';
+      }
+      days.innerHTML = html;
+    } catch(e) { console.error('forecast render error', e); }
+  }
+  function paint(data, cityName) {
+    setText('weatherCity', cityName);
+    if (!data || !data.current) {
+      setText('weatherTemp', '—'); setText('weatherCond', 'No data'); setText('weatherHiLo', '');
+      return;
+    }
+    var cur = data.current;
+    var wmo = WMO[cur.weather_code] || ['⛅', 'Mixed'];
+    setText('weatherTemp', Math.round(cur.temperature_2m) + '°');
+    setText('weatherCond', wmo[1]);
+    var iconEl = $('weatherIcon'); if (iconEl) iconEl.textContent = wmo[0];
+    var hi = Math.round(data.daily.temperature_2m_max[0]);
+    var lo = Math.round(data.daily.temperature_2m_min[0]);
+    var wind = Math.round(cur.wind_speed_10m || 0);
+    setText('weatherHiLo', 'H: ' + hi + '°  ·  L: ' + lo + '°  ·  Wind ' + wind + ' mph');
+    renderForecast(data.daily);
+  }
+  function loadCity(i) {
+    idx = (i + CITIES.length) % CITIES.length;
+    renderDots();
+    var city = CITIES[idx];
+    var fetchedIdx = idx;
+    setText('weatherCity', city.name);
+    if (cache[idx]) { paint(cache[idx], city.name); return; }
+    setText('weatherCond', 'Loading…');
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + city.lat
+            + '&longitude=' + city.lon
+            + '&current=temperature_2m,weather_code,wind_speed_10m'
+            + '&daily=temperature_2m_max,temperature_2m_min,weather_code'
+            + '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=7';
+    fetch(url).then(function(r){ return r.json(); }).then(function(data){
+      cache[fetchedIdx] = data;
+      if (idx === fetchedIdx) { paint(data, city.name); setRefreshTime(); }
+    }).catch(function(err){
+      console.error('weather fetch error', err);
+      if (idx === fetchedIdx) { setText('weatherCond', 'Fetch failed — open in a browser'); setText('weatherTemp', '—'); }
+    });
+  }
+  window.reloadWeather = function() { cache = {}; loadCity(idx); };
+  var prev = document.getElementById('weatherPrev');
+  var next = document.getElementById('weatherNext');
+  if (prev) prev.addEventListener('click', function(){ loadCity(idx - 1); });
+  if (next) next.addEventListener('click', function(){ loadCity(idx + 1); });
+  loadCity(idx);
+
+  var REFRESH_MS = 10 * 60 * 1000;
+  var lastFetch = Date.now();
+  setInterval(function() {
+    if (document.hidden) return;
+    cache = {}; lastFetch = Date.now(); loadCity(idx);
+  }, REFRESH_MS);
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && Date.now() - lastFetch > REFRESH_MS) {
+      cache = {}; lastFetch = Date.now(); loadCity(idx);
+    }
+  });
+})();
+
+// ---------- 7. LIVE STOCKS — Yahoo Finance, every 5 min ----------
+(function(){
+  var SYMBOLS = [
+    { sym: 'NVDA',     y: 'NVDA' },
+    { sym: 'AAPL',     y: 'AAPL' },
+    { sym: 'MSFT',     y: 'MSFT' },
+    { sym: 'GOOGL',    y: 'GOOGL' },
+    { sym: 'TSLA',     y: 'TSLA' },
+    { sym: 'AMZN',     y: 'AMZN' },
+    { sym: 'META',     y: 'META' },
+    { sym: 'S&P 500',  y: '%5EGSPC' },
+    { sym: 'DOW',      y: '%5EDJI' },
+    { sym: 'NASDAQ',   y: '%5EIXIC' },
+    { sym: 'BTC',      y: 'BTC-USD' },
+    { sym: 'GOLD',     y: 'GC%3DF' },
+    { sym: 'OIL (WTI)',y: 'CL%3DF' },
+    { sym: '10Y YIELD',y: '%5ETNX' }
+  ];
+  function fmtPrice(sym, p) {
+    if (p == null || isNaN(p)) return '—';
+    if (sym === 'S&P 500' || sym === 'DOW' || sym === 'NASDAQ') return p.toLocaleString(undefined, {maximumFractionDigits: 2});
+    if (sym === '10Y YIELD') return p.toFixed(2) + '%';
+    if (sym === 'BTC') return '$' + Math.round(p).toLocaleString();
+    return '$' + p.toFixed(2);
+  }
+  function fmtChange(pct) {
+    if (pct == null || isNaN(pct)) return '0.00%';
+    return (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+  }
+  function setStamp() {
+    var el = document.getElementById('lastStocks'); if (!el) return;
+    var d = new Date(), hh = d.getHours(), mm = d.getMinutes();
+    var ampm = hh >= 12 ? 'pm' : 'am'; hh = hh % 12 || 12;
+    el.textContent = hh + ':' + (mm < 10 ? '0' + mm : mm) + ampm;
+  }
+  function rebuildTicker(data) {
+    var track = document.getElementById('tickerTrack'); if (!track) return;
+    var html = '';
+    var dup = data.concat(data);
+    for (var i = 0; i < dup.length; i++) {
+      var s = dup[i];
+      var up = s.changePct >= 0;
+      var arrow = up ? '▲' : '▼';
+      var cls = up ? 'ticker-up' : 'ticker-down';
+      html += '<div class="ticker-item">'
+            + '<span class="ticker-symbol">' + s.sym + '</span>'
+            + '<span class="ticker-price">' + fmtPrice(s.sym, s.price) + '</span>'
+            + '<span class="ticker-change ' + cls + '">' + arrow + ' ' + fmtChange(s.changePct) + '</span>'
+            + '</div>';
+    }
+    track.innerHTML = html;
+  }
+  function fetchOne(s) {
+    var url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + s.y + '?interval=1d&range=2d';
+    return fetch(url).then(function(r){ return r.json(); }).then(function(j){
+      try {
+        var meta = j.chart.result[0].meta;
+        var price = meta.regularMarketPrice;
+        var prev = meta.previousClose || meta.chartPreviousClose;
+        var pct = prev ? ((price - prev) / prev * 100) : 0;
+        return { sym: s.sym, price: price, changePct: pct };
+      } catch(e) { return null; }
+    }).catch(function(){ return null; });
+  }
+  function refreshStocks() {
+    Promise.all(SYMBOLS.map(fetchOne)).then(function(results) {
+      var clean = results.filter(function(r){ return r !== null; });
+      if (clean.length === 0) return;
+      rebuildTicker(clean); setStamp();
+    });
+  }
+  refreshStocks();
+  var lastFetch = Date.now();
+  var REFRESH_MS = 5 * 60 * 1000;
+  setInterval(function() {
+    if (document.hidden) return;
+    lastFetch = Date.now(); refreshStocks();
+  }, REFRESH_MS);
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && Date.now() - lastFetch > REFRESH_MS) {
+      lastFetch = Date.now(); refreshStocks();
+    }
+  });
+})();
+
+// ---------- 8. LIVE EMAILS — emails.json sidecar, every 30 min ----------
+(function(){
+  var COLORS = ['#60a5fa','#fb923c','#a78bfa','#84cc16','#ec4899','#14b8a6','#facc15'];
+  var PILLS  = ['pill-1','pill-2','pill-3','pill-4','pill-5','pill-6','pill-7'];
+  var ACCTS  = ['acct-1','acct-2','acct-3','acct-4','acct-5','acct-6','acct-7'];
+  function setStamp() {
+    var el = document.getElementById('lastEmails'); if (!el) return;
+    var d = new Date(), hh = d.getHours(), mm = d.getMinutes();
+    var ampm = hh >= 12 ? 'pm' : 'am'; hh = hh % 12 || 12;
+    el.textContent = hh + ':' + (mm < 10 ? '0' + mm : mm) + ampm;
+  }
+  function esc(s) {
+    return String(s || '').replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+  function rebuildEmails(data) {
+    var card = document.querySelector('#email .card'); if (!card) return;
+    var acctMap = {};
+    var accts = data.accounts || [];
+    for (var i = 0; i < accts.length; i++) {
+      acctMap[accts[i].id] = {
+        name: accts[i].name,
+        short: accts[i].short || accts[i].name.split('@')[0],
+        slot: i, color: COLORS[i % 7], pill: PILLS[i % 7], acctCls: ACCTS[i % 7]
+      };
+    }
+    var counts = {};
+    (data.emails || []).forEach(function(e) { counts[e.account] = (counts[e.account] || 0) + 1; });
+    var legendHtml = '<div class="email-legend">';
+    for (var i = 0; i < 7; i++) {
+      if (accts[i]) {
+        var a = acctMap[accts[i].id];
+        legendHtml += '<div class="legend-chip"><span class="dot" style="background:' + a.color + '"></span><span>' + esc(a.name) + '</span><span class="count">' + (counts[accts[i].id] || 0) + '</span></div>';
+      } else {
+        legendHtml += '<div class="legend-chip" style="opacity:0.4"><span class="dot" style="background:' + COLORS[i] + '"></span><span>+ slot ' + (i+1) + '</span></div>';
+      }
+    }
+    legendHtml += '</div>';
+    var itemsHtml = '';
+    if (!data.emails || data.emails.length === 0) {
+      itemsHtml = '<div class="empty-state">No unread emails. <em>Nice.</em></div>';
+    } else {
+      data.emails.forEach(function(e) {
+        var a = acctMap[e.account] || { acctCls: 'acct-1', pill: 'pill-1', short: 'unknown' };
+        itemsHtml += '<div class="email-item ' + a.acctCls + '">'
+          + '<div class="email-content">'
+          + '<div class="email-from">' + esc(e.from) + ' <span class="acct-pill ' + a.pill + '">' + esc(a.short) + '</span></div>'
+          + '<div class="email-subject">' + esc(e.subject) + '</div>'
+          + '<div class="email-preview">' + esc(e.preview) + '</div>'
+          + '</div>'
+          + '<div class="email-time">' + esc(e.time) + '</div>'
+          + '</div>';
+      });
+    }
+    card.innerHTML = '<div class="card-title">Recent Email <span class="card-subtitle">Last 48 hours, unread · auto-refreshes every 30 min</span></div>'
+      + legendHtml + itemsHtml;
+    var stat = document.querySelector('.stats-grid .stat-box.stat-blue .stat-value');
+    if (stat && data.unread_count != null) stat.textContent = data.unread_count;
+  }
+  function refreshEmails() {
+    fetch('emails.json?t=' + Date.now()).then(function(r){
+      if (!r.ok) throw new Error('no emails.json');
+      return r.json();
+    }).then(function(data){
+      rebuildEmails(data); setStamp();
+    }).catch(function(){ /* silent */ });
+  }
+  refreshEmails();
+  var lastFetch = Date.now();
+  var REFRESH_MS = 30 * 60 * 1000;
+  setInterval(function() {
+    if (document.hidden) return;
+    lastFetch = Date.now(); refreshEmails();
+  }, REFRESH_MS);
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && Date.now() - lastFetch > REFRESH_MS) {
+      lastFetch = Date.now(); refreshEmails();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

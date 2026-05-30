@@ -1,0 +1,18 @@
+# Personal data — never commit
+emails.json
+dashboard_today.html
+dashboard_20*.html
+
+# Cowork-generated PDFs and contexts that may contain personal data
+*context*.pdf
+*context*.md
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
